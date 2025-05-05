@@ -1,0 +1,103 @@
+public class BankController {
+    public String customerName { get; set; }
+    public Integer amount { get; set; }
+    public String accountId { get; set; }
+    public Bank__c selectedAccount { get; set; }
+    public List<Bank__c> accounts { get; set; }
+    public Decimal currentBalance { get; set; }
+    public String message { get; set; }
+    public String messageType { get; set; }
+
+    public BankController() {
+        accounts = [SELECT Id, Name, Balance__c, Account_Number__c, Status__c FROM Bank__c];
+    }
+
+    public List<SelectOption> getAccountOptions() {
+        List<SelectOption> options = new List<SelectOption>();
+        options.add(new SelectOption('', '-- Select Account --'));
+        for (Bank__c acc : [SELECT Id, Name FROM Bank__c WHERE Status__c = 'Active']) {
+            options.add(new SelectOption(acc.Id, acc.Name));
+        }
+        return options;
+    }
+
+    public PageReference createAccount() {
+        try {
+            // Generate unique account number manually
+            String generatedAccNum = 'ACC-' + String.valueOf(Datetime.now().getTime());
+
+            Bank__c newAcc = new Bank__c(
+                Name = customerName,
+                Balance__c = 0,
+                Status__c = 'Active',
+                Account_Number__c = generatedAccNum
+            );
+            insert newAcc;
+
+            accounts = [SELECT Id, Name, Balance__c, Account_Number__c, Status__c FROM Bank__c];
+            showMessage('Account created successfully with Account Number: ' + generatedAccNum, 'success');
+            customerName = '';
+        } catch (Exception e) {
+            showMessage('Error creating account: ' + e.getMessage(), 'error');
+        }
+        return null;
+    }
+
+    public PageReference deposit() {
+        try {
+            if (String.isBlank(accountId)) {
+                showMessage('Please select an account', 'error');
+                return null;
+            }
+            selectedAccount = [SELECT Id, Balance__c FROM Bank__c WHERE Id = :accountId];
+            selectedAccount.Balance__c += amount;
+            update selectedAccount;
+            currentBalance = selectedAccount.Balance__c;
+            showMessage('Deposit successful!', 'success');
+        } catch (Exception e) {
+            showMessage('Error processing deposit: ' + e.getMessage(), 'error');
+        }
+        return null;
+    }
+
+    public PageReference withdraw() {
+        try {
+            if (String.isBlank(accountId)) {
+                showMessage('Please select an account', 'error');
+                return null;
+            }
+            selectedAccount = [SELECT Id, Balance__c FROM Bank__c WHERE Id = :accountId];
+            if (selectedAccount.Balance__c >= amount) {
+                selectedAccount.Balance__c -= amount;
+                update selectedAccount;
+                currentBalance = selectedAccount.Balance__c;
+                showMessage('Withdrawal successful!', 'success');
+            } else {
+                showMessage('Insufficient balance', 'error');
+            }
+        } catch (Exception e) {
+            showMessage('Error processing withdrawal: ' + e.getMessage(), 'error');
+        }
+        return null;
+    }
+
+    public PageReference checkBalance() {
+        try {
+            if (String.isBlank(accountId)) {
+                showMessage('Please select an account', 'error');
+                return null;
+            }
+            selectedAccount = [SELECT Id, Balance__c FROM Bank__c WHERE Id = :accountId];
+            currentBalance = selectedAccount.Balance__c;
+            showMessage('Current balance: $' + currentBalance, 'info');
+        } catch (Exception e) {
+            showMessage('Error checking balance: ' + e.getMessage(), 'error');
+        }
+        return null;
+    }
+
+    private void showMessage(String msg, String type) {
+        message = msg;
+        messageType = type;
+    }
+}

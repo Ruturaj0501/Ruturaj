@@ -1,0 +1,64 @@
+<apex:page controller="BankController" tabStyle="Bank__c">
+    <style>
+        .container { width: 80%; margin: 0 auto; padding: 20px; }
+        .section { margin-bottom: 20px; border: 1px solid #ddd; padding: 15px; border-radius: 5px; }
+        .form-group { margin-bottom: 8px; }
+        label { display: block; font-weight: bold; }
+        input, select { width: 100%; padding: 8px; margin-top: 5px; }
+        .btn { padding: 8px 15px; margin-right: 10px; cursor: pointer; }
+        .message { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .error { background-color: #ffdddd; color: #d8000c; }
+        .success { background-color: #ddffdd; color: #4F8A10; }
+        .info { background-color: #e7f3fe; color: #31708f; }
+    </style>
+
+    <div class="container">
+        <h1>Bank Application</h1>
+        
+        <!-- Create Account Section -->
+        <div class="section">
+            <h2>Create Account</h2>
+            <apex:form>
+                <div class="form-group">
+                    <label>Customer Name:</label>
+                    <apex:inputText value="{!customerName}"/>
+                </div>
+                <apex:commandButton value="Create Account" action="{!createAccount}" styleClass="btn" style="background-color:#4CAF50;color:black;"/>
+            </apex:form>
+        </div>
+        
+        <!-- Transactions Section -->
+        <div class="section">
+            <h2>Transactions</h2>
+            <apex:form>
+                <div class="form-group">
+                    <label>Select Account:</label>
+                    <apex:selectList value="{!accountId}" size="1">
+                        <apex:selectOptions value="{!accountOptions}"/>
+                    </apex:selectList>
+                </div>
+                
+                <div class="form-group">
+                    <label>Amount:</label>
+                    <apex:inputText value="{!amount}"/>
+                </div>
+                
+                <div class="form-group">
+                    <apex:commandButton value="Deposit" action="{!deposit}" styleClass="btn" style="background-color:#2196F3;color:black;"/>
+                    <apex:commandButton value="Withdraw" action="{!withdraw}" styleClass="btn" style="background-color:#f44336;color:black;"/>
+                    <apex:commandButton value="Check Balance" action="{!checkBalance}" styleClass="btn"/>
+                </div>
+                
+                <apex:outputPanel rendered="{!NOT(ISBLANK(message))}">
+                    <div class="message {!messageType}">
+                        {!message}
+                    </div>
+                </apex:outputPanel>
+                
+                <apex:outputPanel rendered="{!currentBalance != null}">
+                    <h3>Current Balance: ${!currentBalance}</h3>
+                </apex:outputPanel>
+            </apex:form>
+        </div>
+    </div>
+</apex:page>
